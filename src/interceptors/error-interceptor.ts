@@ -2,6 +2,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HTTP_INTERCEPTORS
 import { Injectable } from "@angular/core";
 import { AlertController } from "ionic-angular";
 import { Observable } from "rxjs/Rx";
+import { FiledMessage } from "../models/fieldmessage";
 import { StorageService } from "../services/storage_service";
 
 @Injectable()
@@ -34,6 +35,10 @@ constructor(public storage: StorageService, public alertCtrl: AlertController){
                 this.handle403();
                 break;
 
+                case 422:
+                    this.handle422(errorObj);
+                    break;
+
                 default:
                     this.handleDefaultError(errorObj);
 
@@ -61,6 +66,20 @@ constructor(public storage: StorageService, public alertCtrl: AlertController){
         alert.present();
 
     }
+    handle422(errorObj){
+        let alert = this.alertCtrl.create({
+            title: 'Erro 422: Validação',
+            message: this.listErrors(errorObj.errors),
+            enableBackdropDismiss: false,
+            buttons: [
+                {
+                    text: 'Ok'
+                }
+            ]
+
+        });
+        alert.present();
+    }
     handleDefaultError(errorObj){
         let alert = this.alertCtrl.create({
             title: 'Erro ' + errorObj.status + ': ' + errorObj.error,
@@ -76,6 +95,13 @@ constructor(public storage: StorageService, public alertCtrl: AlertController){
         alert.present();
 
 
+    }
+    private listErrors(messages: FiledMessage[])  : string{
+        let s: string = '';
+        for(var i=0; i<messages.length; i++){
+            s = s + '<p><strong>' + messages[i].fieldName + "</atrong>: " + messages[i].message + '</p>';
+        }
+        return s;
     }
 
 }
